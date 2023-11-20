@@ -85,9 +85,10 @@ class ParabolaBottom:
         
 class SinusWave:
     """Shape of thick sinusodial wave"""
-    def __init__(self, x=0, y=0, len=400e-9, gap=50e-9, deviation=25e-9, thickness=75e-9):
+    def __init__(self, x=0, y=0, len=400e-9, gap=50e-9, deviation=25e-9, thickness=75e-9, tolerance=5e-10):
         # assert dir in ('x+', 'x-', 'y+', 'y-')
         
+        self.tolerance = tolerance
         self.thickness = thickness
         self.sin_function = lambda z: numpy.array([x+z, y-(numpy.cos(z*2*numpy.pi/(len+gap))-1)/2*deviation])
         self.bounds = (gap/2+thickness/2, len-gap/2-thickness/2)

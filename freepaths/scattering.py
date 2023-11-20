@@ -226,17 +226,17 @@ def scattering_on_sinus_wave(ph, box, sin_function, grad_function, tolerance, bo
         else:
             # check distance to function
             # (tried to use scipy.minimize but results were too inaccurate)
-            
+            grad_function_2 = lambda z: grad_function(z, x, y)
             # check number of sign changes within a certain tolerance
             # (if there are multiple sign changes but they are close enough we will just choose one at random)
             eval_points = linspace(bounds[0], bounds[1], ceil((bounds[1]-bounds[0])/tolerance))
-            eval_results = [grad_function(x) for x in eval_points]
+            eval_results = [grad_function_2(x) for x in eval_points]
             signs = sign(eval_results)
             sign_change_indices = where(diff(signs) != 0)[0]
             distance = 100
             closest_point = (0,0)
             for sign_change in sign_change_indices:
-                root = bisect(grad_function, eval_points[sign_change], eval_points[sign_change+1]) # maybe reduce tolreance?
+                root = bisect(grad_function_2, eval_points[sign_change], eval_points[sign_change+1]) # maybe reduce tolreance?
                 point = sin_function(root)
                 if distance < norm(array([x, y]) - array(point)):
                     distance = distance
@@ -359,7 +359,7 @@ def surface_scattering(ph, scattering_types):
                 bottom_parabola_scattering(ph, hole, cf.side_wall_roughness, scattering_types, x, y, z)
 
             elif isinstance(hole, SinusWave):
-                scattering_on_sinus_wave(ph, hole.box, hole.sin_function, hole.grad_function, hole.bounds, hole.thickness, scattering_types, x, y, z)
+                scattering_on_sinus_wave(ph, hole.box, hole.sin_function, hole.grad_function, hole.tolerance, hole.bounds, hole.thickness, scattering_types, x, y, z)
 
             else:
                 pass
