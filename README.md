@@ -2,7 +2,7 @@
 
 This Monte Carlo algorithm simulates trajectories of phonons in 3D models of nanostructures, which consists of a box with holes or pillars of various shapes. The algorithm outputs phonon trajectories, heat fluxes, temperature maps and profiles, the thermal conductivity, scattering maps and statistics and other information. See [documentation](https://anufrievroman.gitbook.io/freepaths/) for the details of the simulation.
 
-![Screenshot](https://github.com/anufrievroman/Monte-Carlo/blob/master/screenshot.png)
+![Screenshot](https://github.com/anufrievroman/Monte-Carlo/blob/master/documentation_images/screenshot.png)
 
 
 ## Installation
