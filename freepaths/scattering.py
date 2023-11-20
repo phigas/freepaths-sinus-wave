@@ -4,9 +4,11 @@ Each function determines whether the scattering should happen and
 call corresponding function for scattering on corresponding primitive.
 """
 
-from math import pi, cos, sin, tan, exp, sqrt, atan, asin, acos
+from math import pi, cos, sin, tan, exp, sqrt, atan, asin, acos, ceil
 from random import random
-from numpy import sign
+from numpy import sign, array, linspace, abs, where, diff
+from numpy.linalg import norm
+from scipy.optimize import bisect
 
 from freepaths.config import cf
 from freepaths.move import move
@@ -203,6 +205,54 @@ def scattering_on_half_triangle_down_holes(ph, x0, y0, Lx, Ly, is_right_half, sc
                 scattering_types.holes = inclined_surfaces_down_scattering(ph, beta, x, x0, cf.hole_roughness)
 
 
+def scattering_on_sinus_wave(ph, box, sin_function, grad_function, tolerance, bounds, thickness, scattering_types, x, y, z):
+    """Check if phonon strikes sinus wave and calculate new direction"""
+    
+    # first fast selection
+    if box[0] < x and x < box[1] and box[2] < y and y < box[3]:
+        # possibly inside the wave
+        
+        # is the point within the bounds in x direction
+        leftmost_point = sin_function(bounds[0])
+        rightmost_point = sin_function(bounds[1])
+        if leftmost_point[0] > x:
+            # check distance to leftmost point
+            distance = norm(array([x, y]) - array(leftmost_point))
+            closest_point = leftmost_point
+        elif rightmost_point[0] < x:
+            # check distance to righmost point
+            distance = norm(array([x, y]) - array(rightmost_point))
+            closest_point = rightmost_point
+        else:
+            # check distance to function
+            # (tried to use scipy.minimize but results were too inaccurate)
+            
+            # check number of sign changes within a certain tolerance
+            # (if there are multiple sign changes but they are close enough we will just choose one at random)
+            eval_points = linspace(bounds[0], bounds[1], ceil((bounds[1]-bounds[0])/tolerance))
+            eval_results = [grad_function(x) for x in eval_points]
+            signs = sign(eval_results)
+            sign_change_indices = where(diff(signs) != 0)[0]
+            distance = 100
+            closest_point = (0,0)
+            for sign_change in sign_change_indices:
+                root = bisect(grad_function, eval_points[sign_change], eval_points[sign_change+1]) # maybe reduce tolreance?
+                point = sin_function(root)
+                if distance < norm(array([x, y]) - array(point)):
+                    distance = distance
+                    closest_point = point
+        
+        if distance < thickness/2:
+            # definetly inside wave
+
+            # can use scattering on circular hole once closest point has been determined
+            scattering_on_circular_holes(ph, closest_point[0], closest_point[1], thickness/2, scattering_types, x, y, z)
+        
+    else:
+        # definetly outside the wave
+        pass
+
+
 def scattering_on_right_sidewall(ph, scattering_types, x, y, z):
     """Scatter phonon if it reached right side wall"""
     if x > cf.width/2:
@@ -307,6 +357,9 @@ def surface_scattering(ph, scattering_types):
 
             elif isinstance(hole, ParabolaBottom):
                 bottom_parabola_scattering(ph, hole, cf.side_wall_roughness, scattering_types, x, y, z)
+
+            elif isinstance(hole, SinusWave):
+                scattering_on_sinus_wave(ph, hole.box, hole.sin_function, hole.grad_function, hole.bounds, hole.thickness, scattering_types, x, y, z)
 
             else:
                 pass
