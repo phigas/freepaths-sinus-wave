@@ -24,7 +24,7 @@ By inserting $y=f(x)$ this turns into
 $$d(x) = \sqrt{(x-x_p)^2+(f(x)-y_p)^2}$$
 This expression needs to be minimized to find the closest point on the line to the phonon point. For this the expression is derived for x. Since the square root function is strictly monotone for values bigger than 0 minimizing the inner function is sufficient. To minimize the expression the function is derived and set equal to zero
 $$d_i(x) = (x-x_p)^2+(f(x)-y_p)^2=(x-y_p)^2+\left(y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2}*deviation-y_p\right)^2$$
-$$d_i' = 2(x-x_p)+\frac{2\pi sin\left(\frac{2\pi(x-x_0)}{len+gap}\right)\left(y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2*deviation}-y_p\right)}{len+gap}*deviation\overset{!}{=}0$$
+$$d_i'(x) = 2(x-x_p)+\frac{2\pi sin\left(\frac{2\pi(x-x_0)}{len+gap}\right)\left(y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2}*deviation-y_p\right)}{len+gap}*deviation\overset{!}{=}0$$
 
 ### Geometrical analysis
 
