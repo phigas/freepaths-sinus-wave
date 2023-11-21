@@ -85,17 +85,17 @@ class ParabolaBottom:
         
 class SinusWave:
     """Shape of thick sinusodial wave"""
-    def __init__(self, x=0, y=0, len=400e-9, gap=50e-9, deviation=25e-9, thickness=75e-9, tolerance=5e-10):
+    def __init__(self, x0=0, y0=0, a=400e-9, gap=50e-9, deviation=25e-9, thickness=75e-9, tolerance=5e-10):
         # assert dir in ('x+', 'x-', 'y+', 'y-')
         
         self.tolerance = tolerance
         self.thickness = thickness
-        self.sin_function = lambda z: numpy.array([x+z, y-(numpy.cos(z*2*numpy.pi/(len+gap))-1)/2*deviation])
-        self.bounds = (gap/2+thickness/2, len+gap/2-thickness/2)
-        self.grad_function = lambda x_l, x_p, y_p: 2*(x_l-x_p)+(2*numpy.pi*numpy.sin(2*numpy.pi*(x_l-x)/(len+gap)) * (y-y_p-(numpy.cos((2*numpy.pi*(x_l-x))/(len+gap))-1)/(2*deviation)))/(deviation*(len+gap))
+        self.sin_function = lambda x: numpy.array([x, y0-(numpy.cos((x-x0)*2*numpy.pi/a)-1)/2*deviation])
+        self.bounds = (x0+gap/2+thickness/2, x0+a-gap/2-thickness/2)
+        self.grad_function = lambda x, x_p, y_p: 2*(x-x_p)   +   (  2*numpy.pi*  numpy.sin(2*numpy.pi*(x-x0)/a)  *  (y0-y_p+( -numpy.cos((2*numpy.pi*(x-x))/a)+1 )/(2*deviation))  )/(  deviation*a  )
         
         # define box for fast phonon selection (xmin, xmax, ymin, ymax)
-        self.box = (x+gap/2, x+gap/2+len, self.sin_function(self.bounds[0])[1]-thickness/2, y+deviation+thickness/2)
+        self.box = (x0+gap/2, x0-gap/2+a, self.sin_function(self.bounds[0])[1]-thickness/2, y0+deviation+thickness/2)
         
         # not implemented
         # # coordinate transformer to handle different orientations
