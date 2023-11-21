@@ -212,34 +212,35 @@ def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness
     if box[0] < x and x < box[1] and box[2] < y and y < box[3]:
         # possibly inside the wave
         
-        distance_function = lambda xi, yi: norm(array([x,y] - array(xi, yi)))
+        distance_function = lambda xi, yi: norm(array([x,y]) - array([xi, yi]))
         
         closest_distance = 100
         closest_point = (0,0)
         
         # is the point within the left circle
         leftmost_point = sin_function(bounds[0])
-        distance = distance_function(leftmost_point)
+        distance = distance_function(leftmost_point[0], leftmost_point[1])
         if distance < closest_distance:
             closest_distance = distance
             closest_point = leftmost_point
         
         # check distance to right circle
         rightmost_point = sin_function(bounds[1])
-        distance = distance_function(rightmost_point)
+        distance = distance_function(rightmost_point[0], rightmost_point[1])
         if distance < closest_distance:
             closest_distance = distance
             closest_point = rightmost_point
             
         # check distance to function
-        eval_points = linspace(bounds[0], bounds[1], ceil((bounds[1]-bounds[0])/tolerance))
-        function_values = [sin_function(xi) for xi in eval_points]
-        distances = distance_function(eval_points, function_values)
+        eval_points = list(linspace(bounds[0], bounds[1], ceil((bounds[1]-bounds[0])/tolerance)))
+        function_values = [sin_function(i)[1] for i in eval_points]
+        distances = [distance_function(i, u) for i, u in zip(eval_points, function_values)]
         distance = min(distances)
         if distance < closest_distance:
             closest_distance = distance
-            closest_index = where(function_values == distance)[0]
-            closest_point = (eval_points[closest_index], function_values[closest_index])
+            closest_index = where(distances == distance)[0]
+            print(closest_index)
+            closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
         
         if distance < thickness/2:
             # definetly inside wave
