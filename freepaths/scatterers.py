@@ -92,8 +92,8 @@ class SinusWave:
         self.thickness = thickness
         self.sin_function = lambda x: numpy.array([x, y0-(numpy.cos((x-x0)*2*numpy.pi/a)-1)/2*deviation])
         self.bounds = (x0+gap/2+thickness/2, x0+a-gap/2-thickness/2)
-        self.grad_function = lambda x, x_p, y_p: 2*(x-x_p)   +   (  2*numpy.pi*  numpy.sin(2*numpy.pi*(x-x0)/a)  *  (y0-y_p+( -numpy.cos((2*numpy.pi*(x-x))/a)+1 )/(2)*deviation)  )/(  a  )*deviation
-        
+        self.grad_function = lambda x, x_p, y_p: 2*(x-x_p) + (y0-(numpy.cos((x-x0)*2*numpy.pi/a)-1)/2*deviation-y_p) * (2*numpy.pi*deviation*numpy.sin(2*numpy.pi*(x-x0)/a))/a
+
         # define box for fast phonon selection (xmin, xmax, ymin, ymax)
         self.box = (x0+gap/2, x0-gap/2+a, self.sin_function(self.bounds[0])[1]-thickness/2, y0+deviation+thickness/2)
         
