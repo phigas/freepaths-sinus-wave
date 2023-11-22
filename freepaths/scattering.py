@@ -218,7 +218,6 @@ def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness
         leftmost_point = sin_function(bounds[0])
         distance = numpy.linalg.norm(numpy.array(leftmost_point) - numpy.array([xp, yp]))
         if distance < thickness/2:
-            print('inside left circle')
             closest_distance = distance
             closest_point = leftmost_point
             eval_bounds = (bounds[0], bounds[0]+thickness/2)
@@ -226,7 +225,6 @@ def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness
         rightmost_point = sin_function(bounds[1])
         distance = numpy.linalg.norm(numpy.array(rightmost_point) - numpy.array([xp, yp]))
         if distance < thickness/2:
-            print('inside right circle')
             closest_distance = distance
             closest_point = rightmost_point
             eval_bounds = (bounds[1]-thickness/2, bounds[1])
@@ -238,14 +236,12 @@ def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness
             distances = [numpy.linalg.norm(numpy.array([xp, yp]) - numpy.array([i, u])) for i, u in zip(eval_points, function_values)]
             distance = min(distances)
             if distance < closest_distance:
-                print('acually closer to function')
                 closest_distance = distance
                 closest_index = numpy.where(distances == distance)[0]
                 closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
 
         # if the point was not in the circles do a fast check if the point is close to the function
         else:
-            print('not found in circles')
             # find top and bottom limit
             top_index = numpy.argmin(numpy.abs(top_points[0] - xp))
             top_y = top_points[1,top_index]
@@ -253,7 +249,6 @@ def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness
             bottom_y = bottom_points[1,bottom_index]
 
             if bottom_y < yp and yp < top_y:
-                print('detected in range')
                 # point inside the slit
                 
                 # calculate distance from line

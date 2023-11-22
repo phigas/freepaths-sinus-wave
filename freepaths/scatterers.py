@@ -100,11 +100,10 @@ class SinusWave:
         xs_to_evaluate = numpy.linspace(self.bounds[0], self.bounds[1], int(numpy.ceil((len+gap)/tolerance)))
         tan_vector = derivative_fun(xs_to_evaluate)
 
-        tan_vector = numpy.ones(tan_vector.shape)
         orth_vector = tan_vector[[1,0]]
         orth_vector[0] = orth_vector[0]*-1
         orth_vector = orth_vector/numpy.linalg.norm(orth_vector, axis=0)*thickness/2
 
         function_value = self.sin_function(xs_to_evaluate)
-        self.bottom_points = function_value + orth_vector
-        self.top_points = function_value - orth_vector
+        self.bottom_points = function_value - orth_vector
+        self.top_points = function_value + orth_vector
