@@ -267,7 +267,7 @@ def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness
                 closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
 
     if closest_distance != -1:
-        scattering_on_circular_holes(ph, closest_point[0], closest_point[1], distance, closest_distance, xp, yp, zp)
+        scattering_on_circular_holes(ph, closest_point[0], closest_point[1], closest_distance, scattering_types, xp, yp, zp)
 
 
 def scattering_on_right_sidewall(ph, scattering_types, x, y, z):
@@ -376,7 +376,7 @@ def surface_scattering(ph, scattering_types):
                 bottom_parabola_scattering(ph, hole, cf.side_wall_roughness, scattering_types, x, y, z)
 
             elif isinstance(hole, SinusWave):
-                scattering_on_sinus_wave(ph, hole.box, hole.sin_function, hole.tolerance, hole.bounds, hole.thickness, scattering_types, x, y, z)
+                scattering_on_sinus_wave(ph, hole.box, hole.sin_function, hole.tolerance, hole.bounds, hole.thickness, scattering_types, hole.bottom_points, hole.top_points, x, y, z)
 
             else:
                 pass
