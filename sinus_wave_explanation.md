@@ -52,3 +52,8 @@ Let's look at the point $(0,-5)$
 ![Point left](documentation_images/point_left.png)
 
 Here the function is zero but outside the range we are interested in. We can use this fact to 
+
+### Alternative method
+
+It is possible to calculate the bottom and top limits of the slit for a certain x value. They can be calculated using the orthogonal vectors to the function. Unfortunately to do this analytically the inverse function to $f(x)=x+cos(x)$ is necessary which i dont think is solvable.  
+Instead a number of vectors are calculated beforehand and the one closest to the actual case is used.
