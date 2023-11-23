@@ -256,13 +256,21 @@ def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness
                 function_values = [sin_function(i)[1] for i in eval_points]
                 distances = [numpy.linalg.norm(numpy.array([xp, yp]) - numpy.array([i, u])) for i, u in zip(eval_points, function_values)]
                 distance = min(distances)
-                
-                closest_distance = distance
-                closest_index = numpy.where(distances == distance)[0]
-                closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
+                if distance < thickness/2:
+                    closest_distance = distance
+                    closest_index = numpy.where(distances == distance)[0]
+                    closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
 
     if closest_distance != -1:
-        scattering_on_circular_holes(ph, closest_point[0], closest_point[1], closest_distance, scattering_types, xp, yp, zp)
+        # only scatter if is moving towars structure
+        direction = (xp - ph.x, yp - ph.y)
+        dot_product = numpy.dot(direction, (closest_point[0] - ph.x, closest_point[1] - ph.y))
+
+        if 0 < dot_product:
+            # should be same mechanics as scattering on circle
+            if yp == closest_point[1]: y += 1e-9 # Prevent division by zero
+            tangent_theta = atan((xp - closest_point[0])/(yp - closest_point[1]))
+            scattering_types.holes = circle_outer_scattering(ph, tangent_theta, yp, closest_point[1], cf.hole_roughness)
 
 
 def scattering_on_right_sidewall(ph, scattering_types, x, y, z):
