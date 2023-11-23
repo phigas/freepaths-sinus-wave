@@ -85,12 +85,25 @@ class ParabolaBottom:
         
 class SinusWave:
     """Shape of thick sinusodial wave"""
-    def __init__(self, x=0, y=0, len=400e-9, gap=50e-9, deviation=25e-9, thickness=75e-9, tolerance=5e-10):
+    def __init__(self, x0=0, y0=0, len=400e-9, gap=50e-9, deviation=25e-9, thickness=75e-9, tolerance=5e-10):
         
         self.tolerance = tolerance
         self.thickness = thickness
-        self.sin_function = lambda z: numpy.array([x+z, y-(numpy.cos(z*2*numpy.pi/(len+gap))-1)/2*deviation])
-        self.bounds = (gap/2+thickness/2, len-gap/2-thickness/2)
+        self.sin_function = lambda x: numpy.array([x, y0-(numpy.cos((x-x0)*2*numpy.pi/(len+gap))-1)/2*deviation])
+        self.bounds = (x0+gap/2+thickness/2, x0+len+gap/2-thickness/2)
         
         # define box for fast phonon selection (xmin, xmax, ymin, ymax)
-        self.box = (x+gap/2, x+gap/2+len, self.sin_function(self.bounds[0])[1]-thickness/2, y+deviation+thickness/2)        
+        self.box = (x0+gap/2, x0+gap/2+len, self.sin_function(self.bounds[0])[1]-thickness/2, y0+deviation+thickness/2)
+
+        derivative_fun = lambda x: numpy.array([x*0+1, 2*numpy.pi*numpy.sin((x-x0)*2*numpy.pi/(len+gap))/(len+gap)/2*deviation])
+
+        xs_to_evaluate = numpy.linspace(self.bounds[0], self.bounds[1], int(numpy.ceil((len+gap)/tolerance)))
+        tan_vector = derivative_fun(xs_to_evaluate)
+
+        orth_vector = tan_vector[[1,0]]
+        orth_vector[0] = orth_vector[0]*-1
+        orth_vector = orth_vector/numpy.linalg.norm(orth_vector, axis=0)*thickness/2
+
+        function_value = self.sin_function(xs_to_evaluate)
+        self.bottom_points = function_value - orth_vector
+        self.top_points = function_value + orth_vector

@@ -205,48 +205,72 @@ def scattering_on_half_triangle_down_holes(ph, x0, y0, Lx, Ly, is_right_half, sc
                 scattering_types.holes = inclined_surfaces_down_scattering(ph, beta, x, x0, cf.hole_roughness)
 
 
-def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness, scattering_types, x, y, z):
-    """Check if phonon strikes sinus wave and calculate new direction"""
+def scattering_on_sinus_wave(ph, box, sin_function, tolerance, bounds, thickness, scattering_types, bottom_points, top_points, xp, yp, zp):
     
+    closest_distance = -1
+    eval_bounds = None
+
     # first fast selection
-    if box[0] < x and x < box[1] and box[2] < y and y < box[3]:
+    if box[0] < xp and xp < box[1] and box[2] < yp and yp < box[3]:
         # possibly inside the wave
-        
-        distance_function = lambda xi, yi: norm(array([x,y]) - array([xi, yi]))
-        
-        closest_distance = 100
-        closest_point = (0,0)
-        
-        # is the point within the left circle
+
+        # check if the point is within one of the circles
         leftmost_point = sin_function(bounds[0])
-        distance = distance_function(leftmost_point[0], leftmost_point[1])
-        if distance < closest_distance:
+        distance = numpy.linalg.norm(numpy.array(leftmost_point) - numpy.array([xp, yp]))
+        if distance < thickness/2:
             closest_distance = distance
             closest_point = leftmost_point
+            eval_bounds = (bounds[0], bounds[0]+thickness/2)
         
-        # check distance to right circle
         rightmost_point = sin_function(bounds[1])
-        distance = distance_function(rightmost_point[0], rightmost_point[1])
-        if distance < closest_distance:
+        distance = numpy.linalg.norm(numpy.array(rightmost_point) - numpy.array([xp, yp]))
+        if distance < thickness/2:
             closest_distance = distance
             closest_point = rightmost_point
-            
-        # check distance to function
-        eval_points = list(linspace(bounds[0], bounds[1], ceil((bounds[1]-bounds[0])/tolerance)))
-        function_values = [sin_function(i)[1] for i in eval_points]
-        distances = [distance_function(i, u) for i, u in zip(eval_points, function_values)]
-        distance = min(distances)
-        if distance < closest_distance:
-            closest_distance = distance
-            closest_index = where(distances == distance)[0]
-            print(closest_index)
-            closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
-        
-        if distance < thickness/2:
-            # definetly inside wave
+            eval_bounds = (bounds[1]-thickness/2, bounds[1])
 
-            # can use scattering on circular hole once closest point has been determined
-            scattering_on_circular_holes(ph, closest_point[0], closest_point[1], thickness/2, scattering_types, x, y, z)
+        # if the point is within one of the circles check if it is not closer to the function close to the circle
+        if eval_bounds is not None:
+            eval_points = list(numpy.linspace(eval_bounds[0], eval_bounds[1], int(numpy.ceil((thickness/2)/tolerance))))[1:]
+            function_values = [sin_function(i)[1] for i in eval_points]
+            distances = [numpy.linalg.norm(numpy.array([xp, yp]) - numpy.array([i, u])) for i, u in zip(eval_points, function_values)]
+            distance = min(distances)
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_index = numpy.where(distances == distance)[0]
+                closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
+
+        # if the point was not in the circles do a fast check if the point is close to the function
+        else:
+            # find top and bottom limit
+            top_index = numpy.argmin(numpy.abs(top_points[0] - xp))
+            top_y = top_points[1,top_index]
+            bottom_index = numpy.argmin(numpy.abs(bottom_points[0] - xp))
+            bottom_y = bottom_points[1,bottom_index]
+
+            if bottom_y < yp and yp < top_y:
+                # point inside the slit
+                
+                # calculate distance from line
+                eval_points = list(numpy.linspace(bounds[0], bounds[1], int(numpy.ceil((bounds[1]-bounds[0])/tolerance))))
+                function_values = [sin_function(i)[1] for i in eval_points]
+                distances = [numpy.linalg.norm(numpy.array([xp, yp]) - numpy.array([i, u])) for i, u in zip(eval_points, function_values)]
+                distance = min(distances)
+                if distance < thickness/2:
+                    closest_distance = distance
+                    closest_index = numpy.where(distances == distance)[0]
+                    closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
+
+    if closest_distance != -1:
+        # only scatter if is moving towars structure
+        direction = (xp - ph.x, yp - ph.y)
+        dot_product = numpy.dot(direction, (closest_point[0] - ph.x, closest_point[1] - ph.y))
+
+        if 0 < dot_product:
+            # should be same mechanics as scattering on circle
+            if yp == closest_point[1]: y += 1e-9 # Prevent division by zero
+            tangent_theta = atan((xp - closest_point[0])/(yp - closest_point[1]))
+            scattering_types.holes = circle_outer_scattering(ph, tangent_theta, yp, closest_point[1], cf.hole_roughness)
 
 
 def scattering_on_right_sidewall(ph, scattering_types, x, y, z):
@@ -355,7 +379,7 @@ def surface_scattering(ph, scattering_types):
                 bottom_parabola_scattering(ph, hole, cf.side_wall_roughness, scattering_types, x, y, z)
 
             elif isinstance(hole, SinusWave):
-                scattering_on_sinus_wave(ph, hole.box, hole.sin_function, hole.tolerance, hole.bounds, hole.thickness, scattering_types, x, y, z)
+                scattering_on_sinus_wave(ph, hole.box, hole.sin_function, hole.tolerance, hole.bounds, hole.thickness, scattering_types, hole.bottom_points, hole.top_points, x, y, z)
 
             else:
                 pass

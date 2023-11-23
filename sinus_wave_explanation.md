@@ -9,24 +9,34 @@ The sinus wave geometry describes a slit that is bent in the shape of a sinus wa
 
 ![Sinus wave geometry](documentation_images/sinus_wave.jpg)
 
-Additionally the orientation of the wave can be changed with the **dir** parameter. The letter (**x** or **y**) in the string note the coordinate the wave is lying in. Then a **+** or **-** define what direction the bump is facing in the other axis. So the direction of the wave in the image is **x+**.
+Additionally the orientation of the wave can be changed with the **dir** parameter. The letter (**x** or **y**) in the string note the coordinate the wave is lying in. Then a **+** or **-** define what direction the bump is facing in the other axis. So the direction of the wave in the image is **x+**. (!the dir parameter is not implemented. To build waves in other direction it's probably easyer to just create a new class)
 
 ## How it works
 
 ### Analytical analysis
 
 The function of the wave in direction **x+** that is thickened is (The parameters **x** and **y** are represented with $x_0$ and $y_0$ respectively):
-$$f(x) = y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2*deviation}$$
+$$f(x) = y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2}*deviation$$
 $$\text{with } x\in\left[x_0+\frac{gap+thickness}{2}, x_0+len-\frac{gap+thickness}{2}\right]$$
 To detect if a phonon is inside the structure the point on the line that is closest to the phonon is calculated. For this the distance between any point $(x,y)$ and the phonon point $(x_p, y_p)$ is expressed
 $$d(x,y) = \sqrt{(x-x_p)^2+(y-y_p)^2}$$
 By inserting $y=f(x)$ this turns into
 $$d(x) = \sqrt{(x-x_p)^2+(f(x)-y_p)^2}$$
-This expression needs to be minimized to find the closest point on the line to the phonon point. For this the expression is derived for x. Since the square root function is strictly monotone for values bigger than 0 minimizing the inner function is sufficient. To minimize the expression the function is derived and set equal to zero
-$$d_i(x) = (x-x_p)^2+(f(x)-y_p)^2=(x-y_p)^2+\left(y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2*deviation}-y_p\right)^2$$
-$$d_i' = 2(x-x_p)+\frac{2\pi sin\left(\frac{2\pi(x-x_0)}{len+gap}\right)\left(y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2*deviation}-y_p\right)}{deviation(len+gap)}\overset{!}{=}0$$
 
-### Geometrical analysis
+### Current method
+
+It is possible to calculate the bottom and top limits of the slit for a certain x value. They can be calculated using the orthogonal vectors to the function. Unfortunately to do this analytically the inverse function to $f(x)=x+cos(x)$ is necessary which i dont think is solvable.  
+Instead a number of vectors are calculated beforehand and the one closest to the actual case is used.
+
+To speed up the calculation it is first checked if the point is within the bounding box of the shape. Then it is checked whether it is within one of the circles at the borders which is also faster to check.
+
+### Old idea (too slow and complex)
+
+This expression needs to be minimized to find the closest point on the line to the phonon point. For this the expression is derived for x. Since the square root function is strictly monotone for values bigger than 0 minimizing the inner function is sufficient. To minimize the expression the function is derived and set equal to zero
+$$d_i(x) = (x-x_p)^2+(f(x)-y_p)^2=(x-y_p)^2+\left(y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2}*deviation-y_p\right)^2$$
+$$d_i'(x) = 2(x-x_p)+\frac{2\pi sin\left(\frac{2\pi(x-x_0)}{len+gap}\right)\left(y_0-\frac{\left(cos\left(\frac{(x-x_0)*2\pi}{len+gap}\right)\right)-1}{2}*deviation-y_p\right)}{len+gap}*deviation\overset{!}{=}0$$
+
+#### Geometrical analysis
 
 This equation does not appear to have an analytical solution so lets look at some examples for this simplified version
 $$f(x)=-cos(x)+1$$
