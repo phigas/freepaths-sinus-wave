@@ -78,7 +78,7 @@ def draw_structure(cf, color_holes="white", color_back="gray"):
                            facecolor=color_holes)
             patches.append(patch)
             patch = Circle(hole.sin_function(hole.bounds[1]) * 1e6, hole.thickness * 1e6 /2,
-                           facecolor='blue')
+                           facecolor=color_holes)
             patches.append(patch)
 
     # Pillars as white patches:
