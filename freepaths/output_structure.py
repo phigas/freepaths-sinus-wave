@@ -1,5 +1,6 @@
 """Module that draws shape of the structure"""
 
+from numpy import concatenate, swapaxes, fliplr
 from matplotlib.patches import Rectangle, Circle, Polygon
 from freepaths.scatterers import *
 
@@ -64,6 +65,20 @@ def draw_structure(cf, color_holes="white", color_back="gray"):
             patch = Polygon([[1e6 * (hole.x - hole.size_x/2), 1e6 * (hole.y + hole.size_y/2)],
                              [1e6 * (hole.x), 1e6 * (hole.y + hole.size_y/2)],
                              [1e6 * hole.x, 1e6 * (hole.y - hole.size_y/2)]], closed=True, facecolor=color_holes)
+            patches.append(patch)
+        
+        elif isinstance(hole, SinusWave):
+            point_vector = concatenate((hole.bottom_points, fliplr(hole.top_points)), 1)
+            point_vector = swapaxes(point_vector, 0, 1)
+            point_vector *= 1e6
+            patch = Polygon(point_vector,
+                            facecolor=color_holes)
+            patches.append(patch)
+            patch = Circle(hole.sin_function(hole.bounds[0]) * 1e6, hole.thickness * 1e6 /2,
+                           facecolor=color_holes)
+            patches.append(patch)
+            patch = Circle(hole.sin_function(hole.bounds[1]) * 1e6, hole.thickness * 1e6 /2,
+                           facecolor='blue')
             patches.append(patch)
 
     # Pillars as white patches:
