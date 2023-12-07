@@ -3,6 +3,7 @@
 import argparse
 import colorama
 from colorama import Fore, Style
+import logging
 
 import freepaths.main_tracing
 import freepaths.main_mfp_sampling
@@ -25,6 +26,8 @@ args = parser.parse_args()
 def run():
     """Run the program depending on the mode"""
     print(f"\n{Fore.BLUE}FreePATHS v{__version__}{Style.RESET_ALL}")
+    logging.getLogger('matplotlib.font_manager').setLevel(level=logging.CRITICAL)
+    
     if args.sampling:
         freepaths.main_mfp_sampling.main(args.input_file)
     else:
