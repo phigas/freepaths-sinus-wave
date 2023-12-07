@@ -1,3 +1,4 @@
 /Results
 /build
 *.egg-info
+*__pycache__
