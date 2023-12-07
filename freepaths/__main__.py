@@ -11,7 +11,6 @@ import freepaths.main_mfp_sampling
 __version__ = "1.6"
 
 colorama.init()
-print(f"\n{Fore.BLUE}FreePATHS v{__version__}{Style.RESET_ALL}")
 
 # Parse user arguments:
 parser = argparse.ArgumentParser(
@@ -26,6 +25,7 @@ args = parser.parse_args()
 
 def run():
     """Run the program depending on the mode"""
+    print(f"\n{Fore.BLUE}FreePATHS v{__version__}{Style.RESET_ALL}")
     logging.getLogger('matplotlib.font_manager').setLevel(level=logging.CRITICAL)
     
     if args.sampling:
