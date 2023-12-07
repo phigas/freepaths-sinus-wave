@@ -47,11 +47,13 @@ class GeneralData:
         self.travel_times = []
         self.mean_free_paths = []
         self.thermal_conductivity = []
+        self.final_distance = []
 
     def save_phonon_data(self, ph):
         """Add information about the phonon to the dataset"""
         self.frequencies.append(ph.f)
         self.group_velocities.append(ph.speed)
+        self.final_distance.append(ph.y)
 
     def save_flight_data(self, flight):
         """Add information about the phonon flight to the dataset"""
@@ -74,6 +76,7 @@ class GeneralData:
         np.savetxt("Data/All travel times.csv", self.travel_times, fmt='%2.4e', delimiter=",", header="Travel time [s]", encoding='utf-8')
         np.savetxt("Data/All mean free paths.csv", self.mean_free_paths, fmt='%2.4e', delimiter=",", header="MFPs [m]", encoding='utf-8')
         np.savetxt("Data/All thermal conductivities.csv", self.thermal_conductivity, fmt='%2.4e', delimiter=",", header="K [W/mK]", encoding='utf-8')
+        np.savetxt('Data/All final y positions.csv', self.final_distance, fmt='%2.4e', delimiter=',', header='Y pos [m]', encoding='utf-8')
 
 
 class ScatteringData:
