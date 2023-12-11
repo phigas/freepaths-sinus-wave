@@ -145,6 +145,11 @@ def main(input_file):
     # collect the results
     print(f'Collecting data from workers:')
     result_list = list(shared_list)
+    
+    if len(result_list) != cf.num_workers:
+        print(f'WARNING: of {cf.num_workers} workers only the results of {len(result_list)} were collected')
+    
+    execution_time_list = []
     while result_list:
         collected_data = result_list.pop()
         scatter_stats.read_data(collected_data['scatter_stats'])
@@ -153,8 +158,12 @@ def main(input_file):
         path_stats.read_data(collected_data['path_stats'])
         scatter_maps.read_data(collected_data['scatter_maps'])
         thermal_maps.read_data(collected_data['thermal_maps'])
-        print(collected_data['execution_time'])
+        execution_time_list.append(collected_data['execution_time'])
+    print(f'Shortest execution time: {round(min(execution_time_list))}s; Longest execution time: {round(max(execution_time_list))}s')
 
+    if len(general_stats.initial_angles) != cf.number_of_phonons:
+        print(f'WARNING: {cf.number_of_phonons} were meant to be simulated but only {len(general_stats.initial_angles)} phonons were collected from the workers')
+    
     # Run additional calculations:
     thermal_maps.calculate_thermal_conductivity()
     thermal_maps.calculate_normalized_flux()
