@@ -194,6 +194,9 @@ def main(input_file):
     if len(general_stats.initial_angles) != cf.number_of_phonons:
         print(f'WARNING: {cf.number_of_phonons} were meant to be simulated but only {len(general_stats.initial_angles)} phonons were collected from the workers')
 
+    if len(general_stats.initial_angles) != cf.number_of_phonons:
+        print(f'WARNING: {cf.number_of_phonons} were meant to be simulated but only {len(general_stats.initial_angles)} phonons were collected from the workers')
+    
     # Run additional calculations:
     thermal_maps.calculate_thermal_conductivity()
     thermal_maps.calculate_normalized_flux()

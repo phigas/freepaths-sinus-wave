@@ -95,6 +95,7 @@ class GeneralData:
             'travel_times': self.travel_times,
             'mean_free_paths': self.mean_free_paths,
             'thermal_conductivity': self.thermal_conductivity,
+            'final_distance': self.final_distance,
         }
     
     def read_data(self, data_dict):
