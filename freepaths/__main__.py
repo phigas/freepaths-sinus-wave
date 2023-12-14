@@ -25,12 +25,8 @@ args = parser.parse_args()
 
 def run():
     """Run the program depending on the mode"""
-<<<<<<< HEAD
-    logging.getLogger('matplotlib.font_manager').setLevel(level=logging.CRITICAL)
-    
-=======
     print(f"\n{Fore.BLUE}FreePATHS v{__version__}{Style.RESET_ALL}")
->>>>>>> multiprocessing
+    logging.getLogger('matplotlib.font_manager').setLevel(level=logging.CRITICAL)
     if args.sampling:
         freepaths.main_mfp_sampling.main(args.input_file)
     else:
