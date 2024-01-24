@@ -70,8 +70,8 @@ HOLES                          = [
     TriangularUpHalfHole(x=0, y=800e-9, size_x=100e-9, size_y=150e-9, is_right_half=True),
     ParabolaTop(tip=LENGTH-100e-9, focus=100e-9),
     ParabolaBottom(tip=100e-9, focus=100e-9),
-    SinusWaveHole(x=-300e-9, y=1000e-9, length=300e-9, gap=0e-9, deviation=35e-9, thickness=75e-9),
-    SinusWaveHole(x=100e-9, y=1000e-9, length=300e-9, gap=0e-9, deviation=-35e-9, thickness=75e-9),
+    SinusWaveHole(x=-300e-9, y=1000e-9, period=300e-9, gap=50e-9, deviation=35e-9, thickness=50e-9),
+    SinusWaveHole(x=0e-9, y=1000e-9, period=300e-9, gap=50e-9, deviation=35e-9, thickness=50e-9, inverted=True),
 ]
 
 # Roughness [m]:

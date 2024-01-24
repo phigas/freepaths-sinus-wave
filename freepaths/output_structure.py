@@ -17,10 +17,12 @@ def draw_structure(cf, color_holes="white", color_back="gray"):
     ]
 
     # Holes as white patches:
-    patches.extend(hole.get_patch(color_holes, cf) for hole in cf.holes)
+    for hole in cf.holes:
+        patches.extend(hole.get_patch(color_holes, cf))
 
     # Pillars as white patches:
-    patches.extend(pillar.get_patch(color_holes, cf) for pillar in cf.pillars)
+    for pillar in cf.pillars:
+        patches.extend(pillar.get_patch(color_holes, cf))
 
     # Phonon source areas as red patches:
     for source in cf.phonon_sources:

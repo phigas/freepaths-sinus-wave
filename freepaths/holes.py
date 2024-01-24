@@ -7,7 +7,9 @@ The functions from the scattering_parabolic, scattering_primitives, etc... are n
 
 
 from math import atan
-from numpy import pi, array, linspace, column_stack, vstack
+from numpy import pi, array, linspace, column_stack, vstack, ceil, where, argmin, dot, concatenate, swapaxes, fliplr
+from numpy import sin as sinus, cos as cosine
+from numpy.linalg import norm
 from matplotlib.patches import Rectangle, Circle, Polygon
 
 
@@ -46,11 +48,11 @@ class CircularHole(Hole):
                 )
 
     def get_patch(self, color_holes, cf):
-        return Circle(
+        return [Circle(
             (1e6 * self.x0, 1e6 * self.y0),
             1e6 * self.diameter / 2,
             facecolor=color_holes,
-        )
+        )]
 
 
 class RectangularHole(Hole):
@@ -103,12 +105,12 @@ class RectangularHole(Hole):
                 )
 
     def get_patch(self, color_holes, cf):
-        return Rectangle(
+        return [Rectangle(
             (1e6 * (self.x0 - self.size_x / 2), 1e6 * (self.y0 - self.size_y / 2)),
             1e6 * self.size_x,
             1e6 * self.size_y,
             facecolor=color_holes,
-        )
+        )]
 
 
 class TriangularUpHole(Hole):
@@ -147,7 +149,7 @@ class TriangularUpHole(Hole):
                 )
 
     def get_patch(self, color_holes, cf):
-        return Polygon(
+        return [Polygon(
             [
                 [1e6 * (self.x0 - self.size_x / 2), 1e6 * (self.y0 - self.size_y / 2)],
                 [1e6 * (self.x0 + self.size_x / 2), 1e6 * (self.y0 - self.size_y / 2)],
@@ -155,7 +157,7 @@ class TriangularUpHole(Hole):
             ],
             closed=True,
             facecolor=color_holes,
-        )
+        )]
 
 
 class TriangularDownHole(Hole):
@@ -196,7 +198,7 @@ class TriangularDownHole(Hole):
                 )
 
     def get_patch(self, color_holes, cf):
-        return Polygon(
+        return [Polygon(
             [
                 [1e6 * (self.x0 - self.size_x / 2), 1e6 * (self.y0 + self.size_y / 2)],
                 [1e6 * (self.x0 + self.size_x / 2), 1e6 * (self.y0 + self.size_y / 2)],
@@ -204,7 +206,7 @@ class TriangularDownHole(Hole):
             ],
             closed=True,
             facecolor=color_holes,
-        )
+        )]
 
 
 class TriangularDownHalfHole(Hole):
@@ -294,7 +296,7 @@ class TriangularDownHalfHole(Hole):
 
     def get_patch(self, color_holes, cf):
         if self.is_right_half:
-            return Polygon(
+            return [Polygon(
                 [
                     [1e6 * (self.x0), 1e6 * (self.y0 + self.size_y / 2)],
                     [
@@ -305,9 +307,9 @@ class TriangularDownHalfHole(Hole):
                 ],
                 closed=True,
                 facecolor=color_holes,
-            )
+            )]
         else:
-            return Polygon(
+            return [Polygon(
                 [
                     [
                         1e6 * (self.x0 - self.size_x / 2),
@@ -318,7 +320,7 @@ class TriangularDownHalfHole(Hole):
                 ],
                 closed=True,
                 facecolor=color_holes,
-            )
+            )]
 
 
 class TriangularUpHalfHole(Hole):
@@ -408,7 +410,7 @@ class TriangularUpHalfHole(Hole):
 
     def get_patch(self, color_holes, cf):
         if self.is_right_half:
-            return Polygon(
+            return [Polygon(
                 [
                     [1e6 * (self.x0), 1e6 * (self.y0 - self.size_y / 2)],
                     [
@@ -419,9 +421,9 @@ class TriangularUpHalfHole(Hole):
                 ],
                 closed=True,
                 facecolor=color_holes,
-            )
+            )]
         else:
-            return Polygon(
+            return [Polygon(
                 [
                     [
                         1e6 * (self.x0 - self.size_x / 2),
@@ -432,81 +434,123 @@ class TriangularUpHalfHole(Hole):
                 ],
                 closed=True,
                 facecolor=color_holes,
-            )
+            )]
 
 
 class SinusWaveHole(Hole):
-    def __init__(self, x=0, y=0, length=400e-9, gap=50e-9, deviation=5e-9, thickness=75e-9):
+    def __init__(self, x=0, y=0, period=400e-9, gap=50e-9, deviation=5e-9, thickness=75e-9, inverted=False):
+        self.tolerance = 2e-9
         self.thickness = thickness
-        self.sin_function = lambda x_pos: y-(cos((x_pos-x)*2*pi/(length+gap))-1)/2*deviation
-        self.derivative_fun = lambda x_pos: 2*pi*sin((x_pos-x)*2*pi/(length+gap))/(length+gap)/2*deviation
+        x0 = x
+        y0 = y
+        length = period - gap
+        self.bounds = (x0+gap/2+thickness/2, x0+length+gap/2-thickness/2)
+        print(self.bounds)
+        if not inverted:
+            self.sin_function = lambda x: array([x, y0-(cosine((x-x0)*2*pi/(length+gap))-1)/2*deviation])
+            # define box for fast phonon selection (xmin, xmax, ymin, ymax)
+            self.box = (x0+gap/2, x0+gap/2+length, self.sin_function(self.bounds[0])[1]-thickness/2, y0+deviation+thickness/2)
+            derivative_fun = lambda x: array([x*0+1, 2*pi*sinus((x-x0)*2*pi/(length+gap))/(length+gap)/2*deviation])
+        else:
+            self.sin_function = lambda x: array([x, y0+(cosine((x-x0)*2*pi/(length+gap))-1)/2*deviation])
+            # define box for fast phonon selection (xmin, xmax, ymin, ymax)
+            self.box = (x0+gap/2, x0+gap/2+length, y0-deviation-thickness/2, self.sin_function(self.bounds[0])[1]+thickness/2)
+            derivative_fun = lambda x: array([x*0+1, -2*pi*sinus((x-x0)*2*pi/(length+gap))/(length+gap)/2*deviation])
 
-        self.function_end_x_points = (x+gap/2+thickness/2, x+length+gap/2-thickness/2)
-        slope = self.derivative_fun(self.function_end_x_points[0])
-        offset = self.thickness/sqrt(1+(1/slope)**2)*sign(slope)
-        self.function_end_x_points_lower = (self.function_end_x_points[0]+offset, self.function_end_x_points[1]-offset)
-        self.function_end_x_points_upper = (self.function_end_x_points[0]-offset, self.function_end_x_points[1]+offset)
+        xs_to_evaluate = linspace(self.bounds[0], self.bounds[1], int(ceil((length+gap)/self.tolerance)))
+        tan_vector = derivative_fun(xs_to_evaluate)
 
-        self.end_circles = [
-            CircularHole(self.function_end_x_points[0], self.sin_function(self.function_end_x_points[0]), self.thickness),
-            CircularHole(self.function_end_x_points[1], self.sin_function(self.function_end_x_points[1]), self.thickness)
-        ]
+        orth_vector = tan_vector[[1,0]]
+        orth_vector[0] = orth_vector[0]*-1
+        orth_vector = orth_vector/norm(orth_vector, axis=0)*thickness/2
+
+        function_value = self.sin_function(xs_to_evaluate)
+        self.bottom_points = function_value - orth_vector
+        self.top_points = function_value + orth_vector
 
     def is_inside(self, x, y, z, cf):
-        # check if phonon is in the circles
-        if self.end_circles[0].is_inside(x, y, z, cf):
-            return 'left circle'
-        if self.end_circles[1].is_inside(x, y, z, cf):
-            return 'right circle'
+        closest_distance = -1
+        eval_bounds = None
 
-        # check if phonon is below or above the function
-        function_y_value = self.sin_function(x)
-        if function_y_value < y:
-            # phonon is above the function
-            boundary_points = self.function_end_x_points_upper
-        else:
-            # phonon is below the function
-            boundary_points = self.function_end_x_points_lower
+        # first fast selection
+        if self.box[0] < x and x < self.box[1] and self.box[2] < y and y < self.box[3]:
+            # possibly inside the wave
 
-        if boundary_points[0] < x < boundary_points[1] and abs(function_y_value - y) <= self.thickness/2:
-            return 'sine function'
+            # check if the point is within one of the circles
+            leftmost_point = self.sin_function(self.bounds[0])
+            distance = norm(array(leftmost_point) - array([x, y]))
+            if distance < self.thickness/2:
+                closest_distance = distance
+                closest_point = leftmost_point
+                eval_bounds = (self.bounds[0], self.bounds[0]+self.thickness/2)
 
-    def circle_scattering(self, ph, scattering_types, x, y, z, cf, x0, y0):
-        if y == y0:
-            y += 1e-9  # Prevent division by zero
-        tangent_theta = atan((x - x0) / (y - y0))
+            rightmost_point = self.sin_function(self.bounds[1])
+            distance = norm(array(rightmost_point) - array([x, y]))
+            if distance < self.thickness/2:
+                closest_distance = distance
+                closest_point = rightmost_point
+                eval_bounds = (self.bounds[1]-self.thickness/2, self.bounds[1])
 
-        # check if the phonon is travelling towards the hole
-        current_distance = sqrt((x0 - ph.x)**2 + (y0 - ph.y)**2)
-        next_distance = sqrt((x0 - x)**2 + (y0 - y)**2)
-        if next_distance <= current_distance:
-            scattering_types.holes = circle_outer_scattering(
-                ph, tangent_theta, y, y0, cf.hole_roughness, cf
-            )
+            # if the point is within one of the circles check if it is not closer to the function close to the circle
+            if eval_bounds is not None:
+                eval_points = list(linspace(eval_bounds[0], eval_bounds[1], int(ceil((self.thickness/2)/self.tolerance))))[1:]
+                function_values = [self.sin_function(i)[1] for i in eval_points]
+                distances = [norm(array([x, y]) - array([i, u])) for i, u in zip(eval_points, function_values)]
+                distance = min(distances)
+                if distance < closest_distance:
+                    closest_distance = distance
+                    closest_index = where(distances == distance)[0]
+                    closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
+
+            # if the point was not in the circles do a fast check if the point is close to the function
+            else:
+                # find top and bottom limit
+                top_index = argmin(abs(self.top_points[0] - x))
+                top_y = self.top_points[1,top_index]
+                bottom_index = argmin(abs(self.bottom_points[0] - x))
+                bottom_y = self.bottom_points[1,bottom_index]
+
+                if bottom_y < y and y < top_y:
+                    # point inside the slit
+
+                    # calculate distance from line
+                    eval_points = list(linspace(self.bounds[0], self.bounds[1], int(ceil((self.bounds[1]-self.bounds[0])/self.tolerance))))
+                    function_values = [self.sin_function(i)[1] for i in eval_points]
+                    distances = [norm(array([x, y]) - array([i, u])) for i, u in zip(eval_points, function_values)]
+                    distance = min(distances)
+                    if distance < self.thickness/2:
+                        closest_distance = distance
+                        closest_index = where(distances == distance)[0]
+                        closest_point = (eval_points[closest_index[0]], function_values[closest_index[0]])
+
+        if closest_distance != -1:
+            return closest_point
 
     def check_if_scattering(self, ph, scattering_types, x, y, z, cf):
-        scattering_surface = self.is_inside(x, y, z, cf)
+        closest_point = self.is_inside(x, y, z, cf)
+        if closest_point is not None:
+            # only scatter if is moving towars structure
+            direction = (x - ph.x, y - ph.y)
+            dot_product = dot(direction, (closest_point[0] - ph.x, closest_point[1] - ph.y))
 
-        if scattering_surface == 'left circle':
-            self.circle_scattering(ph, scattering_types, x, y, z, cf, self.end_circles[0].x0, self.end_circles[0].y0)
-        elif scattering_surface == 'right circle':
-            self.circle_scattering(ph, scattering_types, x, y, z, cf, self.end_circles[1].x0, self.end_circles[1].y0)
-        elif scattering_surface == 'sine function':
-            slope = self.derivative_fun(x)
-            function_y_value = self.sin_function(x)
-            # only scatter if moving towards the wave
-            if sign(y-function_y_value) == sign(ph.y-y):
-                tangent_theta = atan(slope)
-                scattering_types.holes = circle_outer_scattering(
-                        ph, tangent_theta, y, function_y_value, cf.hole_roughness, cf
-                    )
+            if 0 < dot_product:
+                # should be same mechanics as scattering on circle
+                if y == closest_point[1]: y += 1e-9 # Prevent division by zero
+                tangent_theta = atan((x - closest_point[0])/(y - closest_point[1]))
+                scattering_types.holes = circle_outer_scattering(ph, tangent_theta, y, closest_point[1], cf.hole_roughness, cf)
 
     def get_patch(self, color_holes, cf):
-        return Circle(
-            (1e6 * 0, 1e6 * 0),
-            1e6 * 1e-13 / 2,
-            facecolor=color_holes,
-        )
+        point_vector = concatenate((self.bottom_points, fliplr(self.top_points)), 1)
+        point_vector = swapaxes(point_vector, 0, 1)
+        point_vector *= 1e6
+        return [
+            Polygon(point_vector,
+                facecolor=color_holes),
+            Circle(self.sin_function(self.bounds[0]) * 1e6, self.thickness * 1e6 /2,
+                facecolor=color_holes),
+            Circle(self.sin_function(self.bounds[1]) * 1e6, self.thickness * 1e6 /2,
+                facecolor=color_holes),
+        ]
 
 
 class ParabolaTop(Hole):
@@ -558,11 +602,11 @@ class ParabolaTop(Hole):
         polygon_point = vstack(
             (parabola_points, [cf.width / 2, cf.length], [-cf.width / 2, cf.length])
         )
-        return Polygon(
+        return [Polygon(
             polygon_point * 1e6,
             closed=True,
             facecolor=color_holes,
-        )
+        )]
 
 
 class ParabolaBottom(Hole):
@@ -612,11 +656,11 @@ class ParabolaBottom(Hole):
         parabola_ys = eval_xs**2 / (4 * self.focus) + self.tip
         parabola_points = column_stack((eval_xs, parabola_ys))
         polygon_point = vstack((parabola_points, [cf.width / 2, 0], [-cf.width / 2, 0]))
-        return Polygon(
+        return [Polygon(
             polygon_point * 1e6,
             closed=True,
             facecolor=color_holes,
-        )
+        )]
 
 
 class CircularPillar(Hole):
@@ -655,8 +699,8 @@ class CircularPillar(Hole):
             )
 
     def get_patch(self, color_holes, cf):
-        return Circle(
+        return [Circle(
             (1e6 * self.x0, 1e6 * self.y0),
             1e6 * self.diameter / 2,
             facecolor=color_holes,
-        )
+        )]
