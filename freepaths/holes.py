@@ -494,8 +494,12 @@ class SinusWaveHole(Hole):
         elif scattering_surface == 'sine function':
             slope = self.derivative_fun(x)
             function_y_value = self.sin_function(x)
-            direction = sign(y-function_y_value)
-            self.circle_scattering(ph, scattering_types, x, y, z, cf, x+1*direction, y+1/slope*direction)
+            # only scatter if moving towards the wave
+            if sign(y-function_y_value) == sign(ph.y-y):
+                tangent_theta = atan(slope)
+                scattering_types.holes = circle_outer_scattering(
+                        ph, tangent_theta, y, function_y_value, cf.hole_roughness, cf
+                    )
 
     def get_patch(self, color_holes, cf):
         return Circle(
