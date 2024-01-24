@@ -435,7 +435,7 @@ class TriangularUpHalfHole(Hole):
             )
 
 
-class SinusWave(Hole):
+class SinusWaveHole(Hole):
     def __init__(self, x=0, y=0, length=400e-9, gap=50e-9, deviation=5e-9, thickness=75e-9):
         self.thickness = thickness
         self.sin_function = lambda x_pos: y-(cos((x_pos-x)*2*pi/(length+gap))-1)/2*deviation
@@ -447,7 +447,18 @@ class SinusWave(Hole):
         self.function_end_x_points_lower = (function_end_x_points[0]+offset, function_end_x_points[1]-offset)
         self.function_end_x_points_upper = (function_end_x_points[0]-offset, function_end_x_points[1]+offset)
 
+        self.end_circles = [
+            CircularHole(function_end_x_points[0], self.sin_function(function_end_x_points[0]), self.thickness),
+            CircularHole(function_end_x_points[1], self.sin_function(function_end_x_points[1]), self.thickness)
+        ]
+
     def is_inside(self, x, y, z, cf):
+        # check if phonon is in the circles
+        if self.end_circles[0].is_inside(x, y, z, cf):
+            return 'left circle'
+        if self.end_circles[1].is_inside(x, y, z, cf):
+            return 'right circle'
+
         # check if phonon is below or above the function
         function_y_value = self.sin_function(x)
         if function_y_value < y:
@@ -457,8 +468,8 @@ class SinusWave(Hole):
             # phonon is below the function
             boundary_points = self.function_end_x_points_lower
 
-        if boundary_points[0] < x < boundary_points[1] and abs(function_y_value - y) <= self.thickness:
-            return 'sine scattering'
+        if boundary_points[0] < x < boundary_points[1] and abs(function_y_value - y) <= self.thickness/2:
+            return 'sine function'
 
     def check_if_scattering(self, ph, scattering_types, x, y, z, cf):
         pass
