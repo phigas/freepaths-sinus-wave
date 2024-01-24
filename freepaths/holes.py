@@ -435,6 +435,20 @@ class TriangularUpHalfHole(Hole):
             )
 
 
+class SinusWave(Hole):
+    def __init__(self):
+        pass
+    
+    def is_inside(self, x, y, z, cf):
+        pass
+    
+    def check_if_scattering(self, ph, scattering_types, x, y, z, cf):
+        pass
+    
+    def get_patch(self, color_holes, cf):
+        pass
+
+
 class ParabolaTop(Hole):
     """Shape of a parabolic wall"""
 
