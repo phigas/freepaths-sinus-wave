@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import shutil
+import traceback
 import colorama
 import multiprocessing
 from colorama import Fore, Style
@@ -105,7 +106,15 @@ def worker_process(worker_id, total_phonons, shared_list, output_trajectories_of
         # Declare that the calculation is finished:
         finished_workers.value += 1
     except Exception as e:
-        sys.stdout.write(f'\rworker {worker_id} had error {e}\n')
+        # Get the exception type, value, and traceback
+        _, _, exc_traceback = sys.exc_info()
+
+        # Extract the filename and line number from the traceback
+        filename = traceback.extract_tb(exc_traceback)[-1][0]
+        line_number = traceback.extract_tb(exc_traceback)[-1][1]
+
+        # Print the error message and location
+        sys.stdout.write(f'\rworker {worker_id} had error {e} at Location: {filename}, Line: {line_number}\n')
 
 
 def display_workers_finished(finished_workers):
