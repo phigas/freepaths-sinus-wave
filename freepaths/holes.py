@@ -441,15 +441,15 @@ class SinusWaveHole(Hole):
         self.sin_function = lambda x_pos: y-(cos((x_pos-x)*2*pi/(length+gap))-1)/2*deviation
         self.derivative_fun = lambda x_pos: 2*pi*sin((x_pos-x)*2*pi/(length+gap))/(length+gap)/2*deviation
 
-        function_end_x_points = (x+gap/2+thickness/2, x+length+gap/2-thickness/2)
-        slope = self.derivative_fun(function_end_x_points[0])
+        self.function_end_x_points = (x+gap/2+thickness/2, x+length+gap/2-thickness/2)
+        slope = self.derivative_fun(self.function_end_x_points[0])
         offset = self.thickness/sqrt(1+(1/slope)**2)*sign(slope)
-        self.function_end_x_points_lower = (function_end_x_points[0]+offset, function_end_x_points[1]-offset)
-        self.function_end_x_points_upper = (function_end_x_points[0]-offset, function_end_x_points[1]+offset)
+        self.function_end_x_points_lower = (self.function_end_x_points[0]+offset, self.function_end_x_points[1]-offset)
+        self.function_end_x_points_upper = (self.function_end_x_points[0]-offset, self.function_end_x_points[1]+offset)
 
         self.end_circles = [
-            CircularHole(function_end_x_points[0], self.sin_function(function_end_x_points[0]), self.thickness),
-            CircularHole(function_end_x_points[1], self.sin_function(function_end_x_points[1]), self.thickness)
+            CircularHole(self.function_end_x_points[0], self.sin_function(self.function_end_x_points[0]), self.thickness),
+            CircularHole(self.function_end_x_points[1], self.sin_function(self.function_end_x_points[1]), self.thickness)
         ]
 
     def is_inside(self, x, y, z, cf):
@@ -471,8 +471,31 @@ class SinusWaveHole(Hole):
         if boundary_points[0] < x < boundary_points[1] and abs(function_y_value - y) <= self.thickness/2:
             return 'sine function'
 
+    def circle_scattering(self, ph, scattering_types, x, y, z, cf, x0, y0):
+        if y == y0:
+            y += 1e-9  # Prevent division by zero
+        tangent_theta = atan((x - x0) / (y - y0))
+
+        # check if the phonon is travelling towards the hole
+        current_distance = sqrt((x0 - ph.x)**2 + (y0 - ph.y)**2)
+        next_distance = sqrt((x0 - x)**2 + (y0 - y)**2)
+        if next_distance <= current_distance:
+            scattering_types.holes = circle_outer_scattering(
+                ph, tangent_theta, y, y0, cf.hole_roughness, cf
+            )
+
     def check_if_scattering(self, ph, scattering_types, x, y, z, cf):
-        pass
+        scattering_surface = self.is_inside(x, y, z, cf)
+
+        if scattering_surface == 'left circle':
+            self.circle_scattering(ph, scattering_types, x, y, z, cf, self.end_circles[0].x0, self.end_circles[0].y0)
+        elif scattering_surface == 'right circle':
+            self.circle_scattering(ph, scattering_types, x, y, z, cf, self.end_circles[1].x0, self.end_circles[1].y0)
+        elif scattering_surface == 'sine function':
+            slope = self.derivative_fun(x)
+            function_y_value = self.sin_function(x)
+            direction = sign(y-function_y_value)
+            self.circle_scattering(ph, scattering_types, x, y, z, cf, x+1*direction, y+1/slope*direction)
 
     def get_patch(self, color_holes, cf):
         return Circle(
