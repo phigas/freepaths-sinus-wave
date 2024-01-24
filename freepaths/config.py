@@ -50,6 +50,7 @@ class Config:
         assert isinstance(OUTPUT_SCATTERING_MAP, bool), "OUTPUT_SCATTERING_MAP needs to be a bool"
         self.output_scattering_map = OUTPUT_SCATTERING_MAP
         assert isinstance(OUTPUT_TRAJECTORIES_OF_FIRST, int) and OUTPUT_TRAJECTORIES_OF_FIRST > 0, "OUTPUT_TRAJECTORIES_OF_FIRST needs to be an int bigger than zero"
+        assert OUTPUT_TRAJECTORIES_OF_FIRST <= NUMBER_OF_PHONONS, "OUTPUT_TRAJECTORIES_OF_FIRST needs to be smaller than the number of phonons"
         self.output_trajectories_of_first = OUTPUT_TRAJECTORIES_OF_FIRST
         # maybe this should also be removed from config to put with the plot stuff
         assert isinstance(OUTPUT_STRUCTURE_COLOR, str), "OUTPUT_STRUCTURE_COLOR needs to be a str that describes a colour"
