@@ -32,7 +32,7 @@ plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['legend.fontsize'] = 8
 
-def distribution_calculation(filename, data_range, number_of_nodes):
+def distribution_calculation(filename, data_range, number_of_nodes=400):
     """Calculate distribution of numbers (histogram) in a given file"""
     data = np.loadtxt(filename, encoding='utf-8')
     if data_range is None:
@@ -55,7 +55,7 @@ def angle_distribution_calculation():
     return distribution
 
 
-def wavelength_distribution_calculation(number_of_nodes):
+def wavelength_distribution_calculation(number_of_nodes=400):
     """Calculate phonon wavelength distribution from their frequencies and velocities"""
     frequencies = np.loadtxt("Data/All initial frequencies.csv", encoding='utf-8')
     speeds = np.loadtxt("Data/All group velocities.csv", encoding='utf-8')
@@ -112,7 +112,7 @@ def plot_angle_distribution():
 def plot_free_path_distribution():
     """Plot distribution of free path"""
     filename = "Data/All free paths.csv"
-    free_path_distribution = distribution_calculation(filename, None, cf.number_of_nodes)
+    free_path_distribution = distribution_calculation(filename, None)
     fig, ax = plt.subplots()
     ax.plot(free_path_distribution[:, 0] * 1e6, free_path_distribution[:, 1], 'royalblue')
     ax.set_xscale('log')
@@ -127,7 +127,7 @@ def plot_free_path_distribution():
 def plot_frequency_distribution():
     """Plot distribution of frequencies"""
     filename = "Data/All initial frequencies.csv"
-    frequency_distribution = distribution_calculation(filename, None, cf.number_of_nodes)
+    frequency_distribution = distribution_calculation(filename, None)
     fig, ax = plt.subplots()
     ax.plot(frequency_distribution[:, 0], frequency_distribution[:, 1], 'royalblue')
     ax.set_xlabel('Frequency (Hz)')
@@ -139,7 +139,7 @@ def plot_frequency_distribution():
 
 def plot_wavelength_distribution():
     """Plot distribution of wavelength"""
-    wavelength_distribution = wavelength_distribution_calculation(cf.number_of_nodes)
+    wavelength_distribution = wavelength_distribution_calculation()
     fig, ax = plt.subplots()
     ax.plot(wavelength_distribution[:, 0] * 1e9, wavelength_distribution[:, 1], 'royalblue')
     ax.set_xlabel('Wavelength (nm)')
@@ -151,7 +151,7 @@ def plot_wavelength_distribution():
 
 def plot_travel_time_distribution():
     """Plot distribution of wavelength"""
-    travel_time_distribution = distribution_calculation("Data/All travel times.csv", None, cf.number_of_nodes)
+    travel_time_distribution = distribution_calculation("Data/All travel times.csv", None)
     fig, ax = plt.subplots()
     ax.plot(travel_time_distribution[:, 0] * 1e9, travel_time_distribution[:, 1], 'royalblue')
     ax.set_xscale('log')
@@ -164,7 +164,7 @@ def plot_travel_time_distribution():
 
 def plot_mean_free_path_distribution():
     """Plot distribution of MFP per phonon"""
-    mean_free_path_distribution = distribution_calculation("Data/All mean free paths.csv", None, cf.number_of_nodes)
+    mean_free_path_distribution = distribution_calculation("Data/All mean free paths.csv", None)
     fig, ax = plt.subplots()
     ax.plot(mean_free_path_distribution[:, 0] * 1e9, mean_free_path_distribution[:, 1], 'royalblue')
     ax.set_xscale('log')

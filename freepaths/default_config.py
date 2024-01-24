@@ -8,7 +8,6 @@ from freepaths.sources import Source
 OUTPUT_FOLDER_NAME               = "Si nanowire at 300 K"
 NUMBER_OF_PHONONS                = 5000
 NUMBER_OF_TIMESTEPS              = 200000
-NUMBER_OF_NODES                  = 400
 TIMESTEP                         = 2e-12
 T                                = 300
 OUTPUT_SCATTERING_MAP            = False
