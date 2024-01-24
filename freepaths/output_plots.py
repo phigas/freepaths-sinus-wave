@@ -1,6 +1,7 @@
 """Module that calculates and outputs vaious plots and distributions from the saved files"""
 
 import numpy as np
+import warnings
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
@@ -13,7 +14,7 @@ if 'Arial' in plt.rcParams['font.family']:
     plt.rcParams['font.family'] = 'Arial'
 else:
     # Use a generic font or specify multiple options
-    print('Warning: Arial font not available. Falling back on other sans-serif font')
+    warnings.warn('Arial font not available. Falling back on other sans-serif font', UserWarning)
     plt.rcParams['font.family'] = ['sans-serif']
 plt.rcParams['axes.titlesize'] = 10
 plt.rcParams['axes.labelsize'] = 10
