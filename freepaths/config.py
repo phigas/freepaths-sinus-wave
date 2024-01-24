@@ -37,14 +37,24 @@ class Config:
         """Initiate all the parameters from global variables"""
 
         # General parameters:
+        assert isinstance(OUTPUT_FOLDER_NAME, str) and OUTPUT_FOLDER_NAME != '', "OUTPUT_FOLDER_NAME needs to be a non empty string"
         self.output_folder_name = OUTPUT_FOLDER_NAME
+        assert isinstance(NUMBER_OF_PHONONS, int) and NUMBER_OF_PHONONS > 0, "NUMBER_OF_PHONONS needs to be an int bigger than zero"
         self.number_of_phonons = NUMBER_OF_PHONONS
+        assert isinstance(NUMBER_OF_TIMESTEPS, int) and NUMBER_OF_TIMESTEPS > 0, "NUMBER_OF_TIMESTEPS needs to be an int bigger than zero"
         self.number_of_timesteps = NUMBER_OF_TIMESTEPS
+        assert isinstance(TIMESTEP, (int, float)) and TIMESTEP > 0, "TIMESTEP needs to be a number bigger than zero"
         self.timestep = TIMESTEP
+        assert isinstance(T, (int, float)) and T > 0, "T needs to be a number bigger than zero"
         self.temp = T
+        assert isinstance(OUTPUT_SCATTERING_MAP, bool), "OUTPUT_SCATTERING_MAP needs to be a bool"
         self.output_scattering_map = OUTPUT_SCATTERING_MAP
+        assert isinstance(OUTPUT_TRAJECTORIES_OF_FIRST, int) and OUTPUT_TRAJECTORIES_OF_FIRST > 0, "OUTPUT_TRAJECTORIES_OF_FIRST needs to be an int bigger than zero"
         self.output_trajectories_of_first = OUTPUT_TRAJECTORIES_OF_FIRST
+        # maybe this should also be removed from config to put with the plot stuff
+        assert isinstance(OUTPUT_STRUCTURE_COLOR, str), "OUTPUT_STRUCTURE_COLOR needs to be a str that describes a colour"
         self.output_structure_color = OUTPUT_STRUCTURE_COLOR
+        assert isinstance(NUMBER_OF_LENGTH_SEGMENTS, int) and NUMBER_OF_LENGTH_SEGMENTS > 0, "NUMBER_OF_LENGTH_SEGMENTS needs to be an int bigger than zero"
         self.number_of_length_segments = NUMBER_OF_LENGTH_SEGMENTS
 
         # Animation:
