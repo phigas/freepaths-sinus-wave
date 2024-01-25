@@ -5,6 +5,7 @@ checks the validity of the parameters and converts the variables into enums
 
 import sys
 import argparse
+import warnings
 from colorama import Fore, Style
 
 from freepaths.options import Materials, Distributions
@@ -50,7 +51,9 @@ class Config:
         assert isinstance(OUTPUT_SCATTERING_MAP, bool), "OUTPUT_SCATTERING_MAP needs to be a bool"
         self.output_scattering_map = OUTPUT_SCATTERING_MAP
         assert isinstance(OUTPUT_TRAJECTORIES_OF_FIRST, int) and OUTPUT_TRAJECTORIES_OF_FIRST > 0, "OUTPUT_TRAJECTORIES_OF_FIRST needs to be an int bigger than zero"
-        assert OUTPUT_TRAJECTORIES_OF_FIRST <= NUMBER_OF_PHONONS, "OUTPUT_TRAJECTORIES_OF_FIRST needs to be smaller than the number of phonons"
+        if NUMBER_OF_PHONONS < OUTPUT_TRAJECTORIES_OF_FIRST:
+            OUTPUT_TRAJECTORIES_OF_FIRST = NUMBER_OF_PHONONS
+            warnings.warn("Parameter OUTPUT_TRAJECTORIES_OF_FIRST exceeded NUMBER_OF_PHONONS.")
         self.output_trajectories_of_first = OUTPUT_TRAJECTORIES_OF_FIRST
         # maybe this should also be removed from config to put with the plot stuff
         assert isinstance(OUTPUT_STRUCTURE_COLOR, str), "OUTPUT_STRUCTURE_COLOR needs to be a str that describes a colour"
@@ -153,9 +156,6 @@ class Config:
 
     def check_parameter_validity(self):
         """Check if various parameters are valid"""
-        if self.number_of_phonons < self.output_trajectories_of_first:
-            self.output_trajectories_of_first = self.number_of_phonons
-            print("WARNING: Parameter OUTPUT_TRAJECTORIES_OF_FIRST exceeded NUMBER_OF_PHONONS.\n")
 
         for source in self.phonon_sources:
             if source.y > self.length:
@@ -216,14 +216,19 @@ class Config:
 
     def check_depricated_parameters(self):
         """Check for depricated parameters and warn about them"""
+        warnings.filterwarnings("always", category=DeprecationWarning)
+
+        if 'RECORD_THERMAL_DATA_AT_HALF_STEP' in globals():
+            warnings.warn("Parameter RECORD_THERMAL_DATA_AT_HALF_STEP is deprecated because it is now standart.", DeprecationWarning)
+
+        if 'REMOVE_HOLE_BOUNDARY_EFFECTS' in globals():
+            warnings.warn("Parameter REMOVE_HOLE_BOUNDARY_EFFECTS is deprecated because it causes bad data.", DeprecationWarning)
 
         if 'NUMBER_OF_TIMEFRAMES' in globals():
-            print("WARNING: paramter NUMBER_OF_TIMEFRAMES is deprecated. See NUMBER_OF_INITIALIZATION_TIMEFRAMES and INITIALIZATION_TIMESTEPS.")
+            warnings.warn("Paramter NUMBER_OF_TIMEFRAMES is deprecated. See NUMBER_OF_INITIALIZATION_TIMEFRAMES and INITIALIZATION_TIMESTEPS.", DeprecationWarning)
 
         if 'COLD_SIDE_POSITION' in globals():
-            print("ERROR: parameter COLD_SIDE_POSITION is depricated.")
-            print("Use specific boolean parameters like COLD_SIDE_POSITION_TOP = True.\n")
-            sys.exit()
+            raise DeprecationWarning('Parameter COLD_SIDE_POSITION is depricated. Use specific boolean parameters like COLD_SIDE_POSITION_TOP = True.')
 
         if any([
             'HOT_SIDE_POSITION' in globals(),
@@ -238,10 +243,7 @@ class Config:
             'PHONON_SOURCE_WIDTH_Y' in globals(),
             'PHONON_SOURCE_ANGLE_DISTRIBUTION' in globals(),
             ]):
-            print("ERROR: parameters related to HOT_SIDE_... or PHONON_SOURCE_.. are depricated. ")
-            print("Phonon source should be defined through the PHONON_SOURCES variable.\n")
-            print("See updated documentation for more details.\n")
-            sys.exit()
+            raise DeprecationWarning('Parameters related to HOT_SIDE_... or PHONON_SOURCE_.. are depricated. Phonon source should be defined through the PHONON_SOURCES variable. See updated documentation for more details.')
 
 cf = Config()
 cf.convert_to_enums()
